@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-chart-bar"></i> Результаты анализа</h2>
+            <a href="/" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Новый анализ
+            </a>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-danger">
+            <h4><i class="fas fa-exclamation-triangle"></i> Ошибка анализа</h4>
+            <p>Не удалось проанализировать сайт: {{ url }}</p>
+            <p>Проверьте правильность URL и доступность сайта.</p>
+        </div>
+        {% else %}
+        
+        <!-- Основная информация -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>URL:</strong> {{ results.url }}</p>
+                        <p><strong>Время загрузки:</strong> {{ results.load_time }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Статус анализа:</strong> <span class="badge bg-success">Завершен</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+                <!-- В result.html замените блок рекомендаций на этот код -->
+        {% if results.recommendations %}
+        <div class="card mb-4 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>Умные рекомендации от AI
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>
+                        <i class="fas fa-magic me-2"></i>
+                        Найдено {{ results.recommendations|length }} рекомендаций с AI-исправлениями
+                    </strong>
+                </div>
+
+                {% for rec in results.recommendations %}
+                <div class="recommendation-item mb-4 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="{{ 'text-danger' if rec.type == 'critical' else 'text-warning' if rec.type == 'warning' else 'text-info' }}">
+                            <i class="fas fa-{{ 'exclamation-triangle' if rec.type == 'critical' else 'exclamation-circle' if rec.type == 'warning' else 'info-circle' }} me-2"></i>
+                            {{ rec.title }}
+                        </h6>
+                        <div>
+                            <span class="badge bg-{{ 'danger' if rec.type == 'critical' else 'warning' if rec.type == 'warning' else 'info' }} me-2">
+                                {{ rec.type }}
+                            </span>
+                            {% if rec.gpt_error %}
+                            <span class="badge bg-secondary">AI: Ошибка</span>
+                            {% else %}
+                            <span class="badge bg-success">AI: Исправлено</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <p class="text-muted mb-3">{{ rec.message }}</p>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-times text-danger me-2"></i>Текущий код:</h6>
+                            <pre class="bg-light p-2 border rounded small"><code>{{ rec.current_code }}</code></pre>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check text-success me-2"></i>Исправленный код AI:</h6>
+                            <pre class="bg-light p-2 border rounded small"><code>{{ rec.fixed_code }}</code></pre>
+                        </div>
+                    </div>
+
+                    {% if rec.changes and rec.changes|length > 0 %}
+                    <div class="mb-2">
+                        <h6><i class="fas fa-list me-2"></i>Что было изменено AI:</h6>
+                        <ul class="small">
+                            {% for change in rec.changes %}
+                            <li>{{ change }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-2 p-2 bg-light rounded">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <strong>Объяснение AI:</strong> {{ rec.explanation }}
+                        </small>
+                    </div>
+
+                    {% if rec.gpt_error %}
+                    <div class="mt-2 p-2 bg-danger text-white rounded">
+                        <small>
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Ошибка AI:</strong> {{ rec.gpt_error }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Детальные результаты -->
+        <div class="row">
+            <!-- Семантика -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6><i class="fas fa-tags"></i> Семантика</h6>
+                    </div>
+                    <div class="card-body">
+                        {% set s = results.semantic_clarity %}
+                        <p><strong>Title:</strong> {{ s.title|default('Не найден', true) }}</p>
+                        <p><strong>Длина Title:</strong> 
+                            <span class="badge {{ 'bg-success' if s.title_optimal else 'bg-danger' }}">
+                                {{ s.title_length }} символов
+                            </span>
+                        </p>
+                        <p><strong>Description:</strong> {{ s.description|default('Не найден', true) }}</p>
+                        <p><strong>Длина Description:</strong> 
+                            <span class="badge {{ 'bg-success' if s.description_optimal else 'bg-danger' }}">
+                                {{ s.description_length }} символов
+                            </span>
+                        </p>
+                        <p><strong>H1:</strong> {{ s.h1|default('Не найден', true) }}</p>
+                        <p><strong>Title/H1 совпадение:</strong> 
+                            <span class="badge {{ 'bg-success' if s.title_h1_match else 'bg-danger' }}">
+                                {{ 'Да' if s.title_h1_match else 'Нет' }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Заголовки -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6><i class="fas fa-heading"></i> Заголовки</h6>
+                    </div>
+                    <div class="card-body">
+                        {% set h = results.headers %}
+                        <p><strong>H1:</strong> 
+                            <span class="badge {{ 'bg-success' if h.h1_optimal else 'bg-danger' }}">
+                                {{ h.h1_count }}
+                            </span>
+                        </p>
+                        <p><strong>H2:</strong> <span class="badge bg-info">{{ h.h2_count }}</span></p>
+                        <p><strong>H3:</strong> <span class="badge bg-info">{{ h.h3_count }}</span></p>
+                        {% if h.h1_examples %}
+                        <p><strong>Примеры H1:</strong></p>
+                        <ul>
+                            {% for example in h.h1_examples %}
+                            <li>{{ example }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Структура -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6><i class="fas fa-sitemap"></i> Структура</h6>
+                    </div>
+                    <div class="card-body">
+                        {% set st = results.structure %}
+                        <p><strong>Списки:</strong> <span class="badge bg-info">{{ st.lists }}</span></p>
+                        <p><strong>Таблицы:</strong> <span class="badge bg-info">{{ st.tables }}</span></p>
+                        <p><strong>Блоки/цитаты:</strong> <span class="badge bg-info">{{ st.blockquotes }}</span></p>
+                        <p><strong>Схемы/диаграммы:</strong> <span class="badge bg-info">{{ st.schemes }}</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вопросы -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6><i class="fas fa-question-circle"></i> Вопросы</h6>
+                    </div>
+                    <div class="card-body">
+                        {% set q = results.questions %}
+                        <p><strong>Найдено вопросов:</strong> <span class="badge bg-info">{{ q.count }}</span></p>
+                        {% if q.examples %}
+                        <p><strong>Примеры:</strong></p>
+                        <ul>
+                            {% for example in q.examples %}
+                            <li>{{ example[:100] }}{% if example|length > 100 %}...{% endif %}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Структурированные данные -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6><i class="fas fa-database"></i> Структурированные данные</h6>
+                    </div>
+                    <div class="card-body">
+                        {% set sd = results.structured_data %}
+                        <p><strong>JSON-LD:</strong> 
+                            <span class="badge {{ 'bg-success' if sd.json_ld > 0 else 'bg-danger' }}">
+                                {{ sd.json_ld }} блоков
+                            </span>
+                        </p>
+                        <p><strong>Open Graph:</strong> <span class="badge bg-info">{{ sd.og_tags }} тегов</span></p>
+                        {% if sd.json_ld_types %}
+                        <p><strong>Типы Schema.org:</strong></p>
+                        <ul>
+                            {% for type in sd.json_ld_types %}
+                            <li>{{ type }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- EEAT -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6><i class="fas fa-shield-alt"></i> Авторитетность (EEAT)</h6>
+                    </div>
+                    <div class="card-body">
+                        {% set e = results.eeat %}
+                        <p><strong>HTTPS:</strong> 
+                            <span class="badge {{ 'bg-success' if e.https else 'bg-danger' }}">
+                                {{ 'Да' if e.https else 'Нет' }}
+                            </span>
+                        </p>
+                        <p><strong>Контакты:</strong> 
+                            <span class="badge {{ 'bg-success' if e.contact_info else 'bg-warning' }}">
+                                {{ 'Да' if e.contact_info else 'Нет' }}
+                            </span>
+                        </p>
+                        <p><strong>О компании:</strong> 
+                            <span class="badge {{ 'bg-success' if e.about_page else 'bg-warning' }}">
+                                {{ 'Да' if e.about_page else 'Нет' }}
+                            </span>
+                        </p>
+                        <p><strong>Авторитетные ссылки:</strong> <span class="badge bg-info">{{ e.authoritative_links }}</span></p>
+                        <p><strong>Оценка EEAT:</strong> 
+                            <span class="badge {{ 'bg-success' if e.eeat_score >= 3 else 'bg-warning' }}">
+                                {{ e.eeat_score }}/5
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Критические ошибки -->
+        {% if results.validation.issues %}
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Критические ошибки</h5>
+            </div>
+            <div class="card-body">
+                {% for issue in results.validation.issues %}
+                <div class="critical-issue">
+                    <i class="fas fa-times-circle text-danger me-2"></i>{{ issue }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
