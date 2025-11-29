@@ -25,9 +25,17 @@
         }
 
         body {
-            background-color: #f5f7fb;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             color: var(--dark);
             line-height: 1.6;
+        }
+
+        .main-container {
+            background: white;
+            min-height: 100vh;
+            border-radius: 0;
+            box-shadow: 0 0 50px rgba(0,0,0,0.1);
         }
 
         .card {
@@ -52,6 +60,61 @@
             padding: 1.5rem 2rem;
         }
 
+        /* Герой секция */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            margin-bottom: 3rem;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+        }
+
         /* Стили для рекомендаций AI */
         .ai-recommendations {
             background: linear-gradient(135deg, #fff3cd, #ffeaa7);
@@ -66,16 +129,16 @@
         .recommendation-item {
             background: white;
             border-radius: var(--border-radius);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-left: 4px solid;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-left: 6px solid;
             transition: var(--transition);
         }
 
         .recommendation-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: translateX(8px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
         }
 
         .recommendation-item.critical {
@@ -95,69 +158,96 @@
 
         .recommendation-header {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .recommendation-title {
             flex: 1;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            min-width: 300px;
         }
 
         .recommendation-badges {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .code-comparison {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin: 1.5rem 0;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        @media (max-width: 992px) {
+            .code-comparison {
+                grid-template-columns: 1fr;
+            }
         }
 
         .code-block {
             background: #1e1e1e;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            border: 2px solid #333;
         }
 
         .code-header {
             background: #2d2d2d;
-            padding: 0.75rem 1rem;
+            padding: 1rem 1.5rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             color: #fff;
             font-weight: 600;
+            border-bottom: 1px solid #444;
         }
 
         .code-content {
-            padding: 1rem;
+            padding: 1.5rem;
             color: #d4d4d4;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            max-height: 300px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-height: 400px;
             overflow-y: auto;
+            background: #1e1e1e;
+        }
+
+        .code-content pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .code-content code {
             background: none;
             padding: 0;
             color: inherit;
+            font-family: inherit;
         }
 
+        /* Подсветка синтаксиса для HTML */
+        .code-content .tag { color: #569cd6; }
+        .code-content .attr { color: #9cdcfe; }
+        .code-content .value { color: #ce9178; }
+        .code-content .comment { color: #6a9955; }
+
         .changes-list {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--primary);
         }
 
         .changes-list ul {
@@ -166,23 +256,24 @@
         }
 
         .changes-list li {
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             color: #495057;
+            line-height: 1.5;
         }
 
         .ai-explanation {
             background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
             border-left: 4px solid var(--primary);
         }
 
         .ai-error {
             background: linear-gradient(135deg, #ffebee, #ffcdd2);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
             border-left: 4px solid var(--danger);
         }
 
@@ -193,20 +284,22 @@
             background: white;
             border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
 
         .geo-table th {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 15px;
+            padding: 18px;
             text-align: left;
             font-weight: 600;
+            font-size: 1rem;
         }
 
         .geo-table td {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
+            padding: 18px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
         }
 
         .geo-table tr:last-child td {
@@ -230,11 +323,11 @@
         .score-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 20px;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 25px;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 0.9rem;
             border: 2px solid transparent;
         }
 
@@ -284,268 +377,660 @@
             animation: fadeInUp 0.6s ease-out;
         }
 
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .code-comparison {
-                grid-template-columns: 1fr;
-            }
+        /* Дополнительные цвета */
+        .bg-purple {
+            background: linear-gradient(135deg, #6f42c1, #e83e8c) !important;
+        }
 
-            .recommendation-header {
-                flex-direction: column;
-                gap: 10px;
-            }
+        .bg-indigo {
+            background: linear-gradient(135deg, #6610f2, #6f42c1) !important;
+        }
 
-            .recommendation-badges {
-                align-self: flex-start;
-            }
+        .metric-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .metric-item:last-child {
+            border-bottom: none;
+        }
+
+        .critical-issue {
+            padding: 1rem;
+            background: #ffe6e6;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+            margin-bottom: 0.75rem;
         }
     </style>
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, var(--primary), var(--secondary));">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-brain me-2"></i>
-                CogniGeo
-            </a>
-        </div>
-    </nav>
-
-    <div class="container mt-4">
-        <!-- Форма для анализа -->
-        <div class="card fade-in">
-            <div class="card-header text-white">
-                <h5 class="mb-0"><i class="fas fa-search me-2"></i>Анализ сайта</h5>
+<body>
+    <div class="main-container">
+        <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, var(--primary), var(--secondary));">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <i class="fas fa-brain me-2"></i>
+                    CogniGeo
+                </a>
             </div>
-            <div class="card-body">
-                <form action="/analyze" method="POST">
-                    <div class="mb-3">
-                        <label for="url" class="form-label">URL сайта для анализа:</label>
-                        <input type="url" class="form-control" id="url" name="url"
-                               placeholder="https://example.com" required>
+        </nav>
+
+        <!-- Герой секция (показывается когда нет результатов) -->
+        {% if not results %}
+        <div class="hero-section">
+            <div class="container">
+                <h1 class="hero-title">
+                    <i class="fas fa-rocket me-3"></i>
+                    CogniGeo Analyzer
+                </h1>
+                <p class="hero-subtitle">Комплексный анализ сайтов с искусственным интеллектом</p>
+
+                <!-- Форма для анализа -->
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card fade-in">
+                            <div class="card-header text-white">
+                                <h5 class="mb-0"><i class="fas fa-search me-2"></i>Начните анализ сайта</h5>
+                            </div>
+                            <div class="card-body">
+                                <form action="/analyze" method="POST">
+                                    <div class="mb-3">
+                                        <label for="url" class="form-label">Введите URL сайта для анализа:</label>
+                                        <input type="url" class="form-control form-control-lg" id="url" name="url"
+                                               placeholder="https://example.com" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-lg w-100">
+                                        <i class="fas fa-chart-bar me-2"></i>Запустить комплексный анализ
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-chart-bar me-2"></i>Запустить анализ
-                    </button>
-                </form>
+                </div>
             </div>
         </div>
 
-        {% if error %}
-        <div class="alert alert-danger fade-in">
-            <h4><i class="fas fa-exclamation-triangle me-2"></i>Ошибка анализа</h4>
-            <p class="mb-0">{{ error }}</p>
+        <!-- Особенности -->
+        <div class="container">
+            <div class="feature-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                    <h4>GEO Анализ</h4>
+                    <p>Определение географической эффективности и локального SEO</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h4>AI Рекомендации</h4>
+                    <p>Умные исправления от нейросети с примерами кода</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>SEO Анализ</h4>
+                    <p>Полная проверка семантики и структуры сайта</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>EEAT Оценка</h4>
+                    <p>Анализ авторитетности и доверия к сайту</p>
+                </div>
+            </div>
         </div>
         {% endif %}
 
-        {% if results %}
-        <div class="row fade-in">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2><i class="fas fa-chart-bar me-2"></i>Результаты анализа</h2>
-                    <a href="/analyzer" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left me-2"></i>Новый анализ
-                    </a>
-                </div>
+        <div class="container mt-4">
+            {% if error %}
+            <div class="alert alert-danger fade-in">
+                <h4><i class="fas fa-exclamation-triangle me-2"></i>Ошибка анализа</h4>
+                <p class="mb-0">{{ error }}</p>
+            </div>
+            {% endif %}
 
-                <!-- Основная информация -->
-                <div class="card mb-4">
-                    <div class="card-header text-white">
-                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Основная информация</h5>
+            {% if results %}
+            <div class="row fade-in">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-chart-bar me-2"></i>Результаты анализа</h2>
+                        <a href="/analyzer" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Новый анализ
+                        </a>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>URL:</strong> {{ results.url }}</p>
-                                <p><strong>Время загрузки:</strong> {{ results.load_time }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Статус анализа:</strong> <span class="badge bg-success">Завершен</span></p>
+
+                    <!-- Основная информация -->
+                    <div class="card mb-4">
+                        <div class="card-header text-white">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Основная информация</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>URL:</strong> {{ results.url }}</p>
+                                    <p><strong>Время загрузки:</strong> {{ results.load_time }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Статус анализа:</strong> <span class="badge bg-success">Завершен</span></p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- GEO Анализ таблица -->
-                {% if results.geo_analysis %}
-                <div class="card mb-4">
-                    <div class="card-header text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-globe me-2"></i>GEO Анализ
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="geo-table">
-                                <thead>
-                                    <tr>
-                                        <th>Метрика</th>
-                                        <th>Значение</th>
-                                        <th>Оценка</th>
-                                        <th>Описание</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for item in results.geo_analysis %}
-                                    {% if item["Метрика"] != "ОБЩАЯ ОЦЕНКА GEO" %}
-                                    <tr>
-                                        <td><strong>{{ item["Метрика"] }}</strong></td>
-                                        <td>{{ item["Значение"] or "N/A" }}</td>
-                                        <td>
-                                            {% if item["Оценка"] != "N/A" %}
-                                            {% set score = item["Оценка"] %}
-                                            <span class="score-badge
-                                                {% if score >= 9 %}score-excellent
-                                                {% elif score >= 7 %}score-good
-                                                {% elif score >= 5 %}score-medium
-                                                {% elif score >= 3 %}score-poor
-                                                {% else %}score-bad{% endif %}">
-                                                <i class="fas fa-{% if score >= 7 %}check{% elif score >= 5 %}exclamation{% else %}times{% endif %}-circle"></i>
-                                                {{ score }}/10
-                                            </span>
-                                            {% else %}
-                                            <span class="badge bg-secondary">N/A</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ item["Описание"] or "Пояснение недоступно" }}</td>
-                                    </tr>
-                                    {% endif %}
-                                    {% endfor %}
+                    <!-- GEO Анализ таблица -->
+                    {% if results.geo_analysis %}
+                    <div class="card mb-4">
+                        <div class="card-header text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-globe me-2"></i>GEO Анализ
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="geo-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Метрика</th>
+                                            <th>Значение</th>
+                                            <th>Оценка</th>
+                                            <th>Описание</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in results.geo_analysis %}
+                                        {% if item["Метрика"] != "ОБЩАЯ ОЦЕНКА GEO" %}
+                                        <tr>
+                                            <td><strong>{{ item["Метрика"] }}</strong></td>
+                                            <td>{{ item["Значение"] or "N/A" }}</td>
+                                            <td>
+                                                {% if item["Оценка"] != "N/A" %}
+                                                {% set score = item["Оценка"] %}
+                                                <span class="score-badge
+                                                    {% if score >= 9 %}score-excellent
+                                                    {% elif score >= 7 %}score-good
+                                                    {% elif score >= 5 %}score-medium
+                                                    {% elif score >= 3 %}score-poor
+                                                    {% else %}score-bad{% endif %}">
+                                                    <i class="fas fa-{% if score >= 7 %}check{% elif score >= 5 %}exclamation{% else %}times{% endif %}-circle"></i>
+                                                    {{ score }}/10
+                                                </span>
+                                                {% else %}
+                                                <span class="badge bg-secondary">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ item["Описание"] or "Пояснение недоступно" }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endfor %}
 
-                                    <!-- Общая оценка -->
-                                    {% for item in results.geo_analysis %}
-                                    {% if item["Метрика"] == "ОБЩАЯ ОЦЕНКА GEO" %}
-                                    <tr class="overall-row">
-                                        <td>{{ item["Метрика"] }}</td>
-                                        <td>{{ item["Значение"] or "N/A" }}</td>
-                                        <td>
-                                            {% if item["Оценка"] != "N/A" %}
-                                            {% set score = item["Оценка"] %}
-                                            <span class="score-badge
-                                                {% if score >= 9 %}score-excellent
-                                                {% elif score >= 7 %}score-good
-                                                {% elif score >= 5 %}score-medium
-                                                {% elif score >= 3 %}score-poor
-                                                {% else %}score-bad{% endif %}">
-                                                <i class="fas fa-star"></i>
-                                                {{ score }}/10
-                                            </span>
-                                            {% else %}
-                                            <span class="badge bg-secondary">N/A</span>
-                                            {% endif %}
-                                        </td>
-                                        <td><strong>{{ item["Описание"] or "Рекомендации недоступны" }}</strong></td>
-                                    </tr>
-                                    {% endif %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                        <!-- Общая оценка -->
+                                        {% for item in results.geo_analysis %}
+                                        {% if item["Метрика"] == "ОБЩАЯ ОЦЕНКА GEO" %}
+                                        <tr class="overall-row">
+                                            <td>{{ item["Метрика"] }}</td>
+                                            <td>{{ item["Значение"] or "N/A" }}</td>
+                                            <td>
+                                                {% if item["Оценка"] != "N/A" %}
+                                                {% set score = item["Оценка"] %}
+                                                <span class="score-badge
+                                                    {% if score >= 9 %}score-excellent
+                                                    {% elif score >= 7 %}score-good
+                                                    {% elif score >= 5 %}score-medium
+                                                    {% elif score >= 3 %}score-poor
+                                                    {% else %}score-bad{% endif %}">
+                                                    <i class="fas fa-star"></i>
+                                                    {{ score }}/10
+                                                </span>
+                                                {% else %}
+                                                <span class="badge bg-secondary">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            <td><strong>{{ item["Описание"] or "Рекомендации недоступны" }}</strong></td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
-                {% endif %}
+                    {% endif %}
 
-                <!-- Рекомендации AI -->
-                {% if results.recommendations %}
-                <div class="card mb-4 ai-recommendations">
-                    <div class="card-header text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-robot me-2"></i>Умные рекомендации от AI
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-info mb-4">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-magic fa-2x me-3"></i>
-                                <div>
-                                    <h6 class="mb-1">Найдено {{ results.recommendations|length }} рекомендаций с AI-исправлениями</h6>
-                                    <small class="mb-0">ИИ проанализировал ваш сайт и предложил конкретные исправления</small>
-                                </div>
-                            </div>
+
+                    <!-- Рекомендации AI -->
+                    {% if results.recommendations %}
+                    <div class="card mb-4 ai-recommendations">
+                        <div class="card-header text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-robot me-2"></i>Умные рекомендации от AI
+                            </h5>
                         </div>
-
-                        {% for rec in results.recommendations %}
-                        <div class="recommendation-item {{ rec.type }}">
-                            <div class="recommendation-header">
-                                <div class="recommendation-title">
-                                    <i class="fas fa-{{ 'exclamation-triangle' if rec.type == 'critical' else 'exclamation-circle' if rec.type == 'warning' else 'info-circle' }} fa-lg"
-                                       style="color: {% if rec.type == 'critical' %}var(--danger){% elif rec.type == 'warning' %}var(--warning){% else %}var(--success){% endif %}"></i>
-                                    <h6 class="mb-0">{{ rec.title }}</h6>
-                                </div>
-                                <div class="recommendation-badges">
-                                    <span class="badge bg-{{ 'danger' if rec.type == 'critical' else 'warning' if rec.type == 'warning' else 'info' }}">
-                                        {{ rec.type }}
-                                    </span>
-                                    {% if rec.gpt_error %}
-                                    <span class="badge bg-secondary">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>AI: Ошибка
-                                    </span>
-                                    {% else %}
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check me-1"></i>AI: Исправлено
-                                    </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <p class="text-muted mb-3">{{ rec.message }}</p>
-
-                            <div class="code-comparison">
-                                <div class="code-block">
-                                    <div class="code-header text-danger">
-                                        <i class="fas fa-times me-2"></i>
-                                        <span>Текущий код</span>
-                                    </div>
-                                    <div class="code-content">
-                                        <code>{{ rec.current_code }}</code>
-                                    </div>
-                                </div>
-                                <div class="code-block">
-                                    <div class="code-header text-success">
-                                        <i class="fas fa-check me-2"></i>
-                                        <span>Исправленный код AI</span>
-                                    </div>
-                                    <div class="code-content">
-                                        <code>{{ rec.fixed_code }}</code>
+                        <div class="card-body">
+                            <div class="alert alert-info mb-4">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-magic fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="mb-1">Найдено {{ results.recommendations|length }} рекомендаций с AI-исправлениями</h6>
+                                        <small class="mb-0">ИИ проанализировал ваш сайт и предложил конкретные исправления</small>
                                     </div>
                                 </div>
                             </div>
+                    
+                            {% for rec in results.recommendations %}
+                            <div class="recommendation-item {{ rec.type }}">
+                                <div class="recommendation-header">
+                                    <div class="recommendation-title">
+                                        <i class="fas fa-{{ 'exclamation-triangle' if rec.type == 'critical' else 'exclamation-circle' if rec.type == 'warning' else 'info-circle' }} fa-lg"
+                                           style="color: {% if rec.type == 'critical' %}var(--danger){% elif rec.type == 'warning' %}var(--warning){% else %}var(--success){% endif %}"></i>
+                                        <div>
+                                            <h6 class="mb-1">{{ rec.title }}</h6>
+                                            <p class="text-muted mb-0 small">{{ rec.message }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="recommendation-badges">
+                                        <span class="badge bg-{{ 'danger' if rec.type == 'critical' else 'warning' if rec.type == 'warning' else 'info' }} me-2">
+                                            {{ rec.type|upper }}
+                                        </span>
+                                        {% if rec.gpt_error %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>AI: Ошибка
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>AI: Исправлено
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
 
-                            {% if rec.changes and rec.changes|length > 0 %}
-                            <div class="changes-list">
-                                <h6 class="mb-3">
-                                    <i class="fas fa-list me-2"></i>Что было изменено AI:
-                                </h6>
-                                <ul>
-                                    {% for change in rec.changes %}
-                                    <li>{{ change }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                            {% endif %}
+                                <!-- Блоки с кодом - УЛУЧШЕННАЯ ВЕРСИЯ -->
+                                <div class="code-comparison-container mt-4">
+                                    <div class="row g-4">
+                                        <!-- Текущий код -->
+                                        <div class="col-xxl-6 col-lg-12">
+                                            <div class="code-block-wrapper">
+                                                <div class="code-header bg-danger text-white">
+                                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fas fa-times me-2"></i>
+                                                            <span class="fw-bold">Текущий код</span>
+                                                        </div>
+                                                        <div class="code-actions">
+                                                            <button class="btn btn-sm btn-outline-light copy-btn" data-code="current-{{ loop.index }}">
+                                                                <i class="fas fa-copy me-1"></i>Копировать
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-light expand-btn" data-target="current-{{ loop.index }}">
+                                                                <i class="fas fa-expand me-1"></i>Развернуть
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="code-content-wrapper">
+                                                    <pre id="current-{{ loop.index }}" class="code-content scrollable-code full-height-code"><code class="language-html">{{ rec.current_code }}</code></pre>
+                                                </div>
+                                                <div class="code-footer">
+                                                    <small class="text-muted">Длина: {{ rec.current_code|length }} символов</small>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                            <div class="ai-explanation">
-                                <small>
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    <strong>Объяснение AI:</strong> {{ rec.explanation }}
-                                </small>
-                            </div>
+                                        <!-- Исправленный код -->
+                                        <div class="col-xxl-6 col-lg-12">
+                                            <div class="code-block-wrapper">
+                                                <div class="code-header bg-success text-white">
+                                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fas fa-check me-2"></i>
+                                                            <span class="fw-bold">Исправленный код AI</span>
+                                                        </div>
+                                                        <div class="code-actions">
+                                                            <button class="btn btn-sm btn-outline-light copy-btn" data-code="fixed-{{ loop.index }}">
+                                                                <i class="fas fa-copy me-1"></i>Копировать
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-light expand-btn" data-target="fixed-{{ loop.index }}">
+                                                                <i class="fas fa-expand me-1"></i>Развернуть
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="code-content-wrapper">
+                                                    <pre id="fixed-{{ loop.index }}" class="code-content scrollable-code full-height-code"><code class="language-html">{{ rec.fixed_code }}</code></pre>
+                                                </div>
+                                                <div class="code-footer">
+                                                    <small class="text-muted">Длина: {{ rec.fixed_code|length }} символов</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            {% if rec.gpt_error %}
-                            <div class="ai-error">
-                                <small>
-                                    <i class="fas fa-exclamation-triangle me-1"></i>
-                                    <strong>Ошибка AI:</strong> {{ rec.gpt_error }}
-                                </small>
+                                <!-- Изменения -->
+                                {% if rec.changes and rec.changes|length > 0 %}
+                                <div class="changes-section mt-4">
+                                    <div class="changes-header d-flex align-items-center mb-3">
+                                        <i class="fas fa-list text-primary me-2"></i>
+                                        <h6 class="mb-0">Что было изменено AI:</h6>
+                                    </div>
+                                    <div class="changes-grid">
+                                        {% for change in rec.changes %}
+                                        <div class="change-item">
+                                            <i class="fas fa-check-circle text-success me-2"></i>
+                                            <span>{{ change }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Объяснение AI -->
+                                <div class="explanation-section mt-4">
+                                    <div class="explanation-header d-flex align-items-center mb-2">
+                                        <i class="fas fa-info-circle text-primary me-2"></i>
+                                        <h6 class="mb-0">Объяснение AI:</h6>
+                                    </div>
+                                    <div class="explanation-content bg-light p-3 rounded">
+                                        <p class="mb-0">{{ rec.explanation }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Ошибка AI -->
+                                {% if rec.gpt_error %}
+                                <div class="error-section mt-3">
+                                    <div class="error-header d-flex align-items-center mb-2">
+                                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                        <h6 class="mb-0">Ошибка AI:</h6>
+                                    </div>
+                                    <div class="error-content bg-danger text-white p-3 rounded">
+                                        <p class="mb-0">{{ rec.gpt_error }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
-                </div>
-                {% endif %}
 
-                                <!-- Другие секции анализа -->
+                    <style>
+                    /* УЛУЧШЕННЫЕ СТИЛИ ДЛЯ БЛОКОВ С КОДОМ */
+                    .recommendation-item {
+                        background: white;
+                        border-radius: 12px;
+                        padding: 2rem;
+                        margin-bottom: 2.5rem;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                        border-left: 6px solid;
+                        transition: all 0.3s ease;
+                    }
+
+                    .recommendation-item:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+                    }
+
+                    .code-comparison-container {
+                        margin: 2rem 0;
+                    }
+
+                    .code-block-wrapper {
+                        border-radius: 8px;
+                        overflow: hidden;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    .code-header {
+                        padding: 1rem 1.5rem;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        font-weight: 600;
+                        flex-shrink: 0;
+                    }
+
+                    .code-actions {
+                        display: flex;
+                        gap: 0.5rem;
+                    }
+
+                    .code-content-wrapper {
+                        background: #1e1e1e;
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        min-height: 300px;
+                    }
+
+                    .code-content {
+                        margin: 0;
+                        padding: 1.5rem;
+                        background: #1e1e1e !important;
+                        color: #d4d4d4;
+                        font-family: 'Fira Code', 'Courier New', monospace;
+                        font-size: 14px;
+                        line-height: 1.6;
+                        border: none;
+                        white-space: pre-wrap;
+                        word-wrap: break-word;
+                        overflow-wrap: break-word;
+                        flex: 1;
+                        overflow: auto;
+                    }
+
+                    .full-height-code {
+                        height: auto !important;
+                        max-height: none !important;
+                        min-height: 200px;
+                    }
+
+                    .scrollable-code {
+                        overflow: auto;
+                    }
+
+                    .code-footer {
+                        padding: 0.75rem 1.5rem;
+                        background: #f8f9fa;
+                        border-top: 1px solid #dee2e6;
+                        flex-shrink: 0;
+                    }
+
+                    /* Стили для развернутого режима */
+                    .code-content.expanded {
+                        position: fixed;
+                        top: 50px;
+                        left: 50px;
+                        right: 50px;
+                        bottom: 50px;
+                        z-index: 1050;
+                        background: #1e1e1e !important;
+                        border: 2px solid #007bff;
+                        border-radius: 8px;
+                        box-shadow: 0 0 50px rgba(0,0,0,0.8);
+                    }
+
+                    .overlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0,0,0,0.8);
+                        z-index: 1040;
+                        display: none;
+                    }
+
+                    /* Улучшенная читаемость кода */
+                    .language-html {
+                        color: #d4d4d4;
+                    }
+
+                    .language-html .tag {
+                        color: #569cd6;
+                    }
+
+                    .language-html .attr-name {
+                        color: #9cdcfe;
+                    }
+
+                    .language-html .attr-value {
+                        color: #ce9178;
+                    }
+
+                    .language-html .comment {
+                        color: #6a9955;
+                    }
+
+                    /* Адаптивность */
+                    @media (max-width: 1200px) {
+                        .col-xxl-6 {
+                            margin-bottom: 1.5rem;
+                        }
+                    }
+
+                    @media (max-width: 768px) {
+                        .recommendation-header {
+                            flex-direction: column;
+                            align-items: flex-start;
+                        }
+
+                        .recommendation-badges {
+                            align-self: flex-start;
+                            margin-top: 1rem;
+                        }
+
+                        .code-header {
+                            flex-direction: column;
+                            gap: 1rem;
+                            align-items: flex-start;
+                        }
+
+                        .code-actions {
+                            align-self: stretch;
+                            justify-content: flex-end;
+                        }
+
+                        .code-content {
+                            font-size: 12px;
+                            padding: 1rem;
+                        }
+                    }
+
+                    /* Стили для кнопок */
+                    .copy-btn, .expand-btn {
+                        transition: all 0.2s ease;
+                        font-size: 0.8rem;
+                    }
+
+                    .copy-btn:hover, .expand-btn:hover {
+                        transform: scale(1.05);
+                    }
+
+                    .copy-btn.copied {
+                        background: #28a745 !important;
+                        border-color: #28a745 !important;
+                    }
+
+                    .expand-btn.expanded {
+                        background: #007bff !important;
+                        border-color: #007bff !important;
+                    }
+
+                    /* Улучшения для длинного контента */
+                    .code-content::-webkit-scrollbar {
+                        width: 8px;
+                        height: 8px;
+                    }
+
+                    .code-content::-webkit-scrollbar-track {
+                        background: #2d2d2d;
+                    }
+
+                    .code-content::-webkit-scrollbar-thumb {
+                        background: #555;
+                        border-radius: 4px;
+                    }
+
+                    .code-content::-webkit-scrollbar-thumb:hover {
+                        background: #777;
+                    }
+                    </style>
+
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Функция для копирования кода
+                        const copyButtons = document.querySelectorAll('.copy-btn');
+                        copyButtons.forEach(button => {
+                            button.addEventListener('click', function() {
+                                const codeId = this.getAttribute('data-code');
+                                const codeElement = document.getElementById(codeId);
+                                const codeText = codeElement.textContent;
+
+                                navigator.clipboard.writeText(codeText).then(() => {
+                                    const originalText = this.innerHTML;
+                                    this.innerHTML = '<i class="fas fa-check me-1"></i>Скопировано!';
+                                    this.classList.add('copied');
+
+                                    setTimeout(() => {
+                                        this.innerHTML = originalText;
+                                        this.classList.remove('copied');
+                                    }, 2000);
+                                });
+                            });
+                        });
+
+                        // Функция для разворачивания кода
+                        const expandButtons = document.querySelectorAll('.expand-btn');
+                        expandButtons.forEach(button => {
+                            button.addEventListener('click', function() {
+                                const targetId = this.getAttribute('data-target');
+                                const codeElement = document.getElementById(targetId);
+
+                                if (codeElement.classList.contains('expanded')) {
+                                    // Свернуть
+                                    codeElement.classList.remove('expanded');
+                                    this.innerHTML = '<i class="fas fa-expand me-1"></i>Развернуть';
+                                    this.classList.remove('expanded');
+                                    document.querySelector('.overlay')?.remove();
+                                } else {
+                                    // Развернуть
+                                    const overlay = document.createElement('div');
+                                    overlay.className = 'overlay';
+                                    document.body.appendChild(overlay);
+                                    overlay.style.display = 'block';
+
+                                    codeElement.classList.add('expanded');
+                                    this.innerHTML = '<i class="fas fa-compress me-1"></i>Свернуть';
+                                    this.classList.add('expanded');
+
+                                    // Закрытие по клику на overlay
+                                    overlay.addEventListener('click', function() {
+                                        codeElement.classList.remove('expanded');
+                                        button.innerHTML = '<i class="fas fa-expand me-1"></i>Развернуть';
+                                        button.classList.remove('expanded');
+                                        overlay.remove();
+                                    });
+                                }
+                            });
+                        });
+
+                        // Автоматическое прокручивание до рекомендаций
+                        const recommendations = document.querySelector('.ai-recommendations');
+                        if (recommendations) {
+                            recommendations.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    });
+                    </script>
+                    {% endif %}
+
+                <!-- Другие секции анализа -->
                 <div class="row">
                     <!-- Семантика -->
                     {% if results.semantic_clarity %}
@@ -845,16 +1330,18 @@
                     </div>
                 </div>
                 {% endif %}
-            </div>
-        </div>
-        {% endif %}
-    </div>
 
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2025 CogniGeo. Система комплексного анализа сайтов</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
-    </footer>
+
+        <footer class="bg-dark text-light py-4 mt-5">
+            <div class="container text-center">
+                <p class="mb-0">&copy; 2025 CogniGeo. Система комплексного анализа сайтов</p>
+            </div>
+        </footer>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
