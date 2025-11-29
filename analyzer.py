@@ -5,13 +5,6 @@ import json
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 
-import requests
-import time
-import re
-import json
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
-
 
 class WebsiteAnalyzer:
     def __init__(self, yandex_gpt_api_key=None):
@@ -21,38 +14,50 @@ class WebsiteAnalyzer:
         })
         self.yandex_gpt_api_key = 'AQVN2E_gKuTJc_B1jb1gPQK4jAQiEbl5RZtSkmGU'
 
-    def _get_yandex_gpt_fix(self, problem_description, current_code, url):
-        """Получение исправления от YandexGPT"""
-        if not self.yandex_gpt_api_key:
-            return {
-                "fixed_code": current_code,
-                "explanation": "YandexGPT API ключ не настроен. Для использования AI-исправлений укажите API ключ.",
-                "changes": ["Требуется настройка API ключа"],
-                "error": "API_KEY_MISSING"
-            }
-
-        prompt = f"""КОНТЕКСТ:
-        - Анализируемый URL: {url}
-        - Выявленная проблема: {problem_description}
-        - Текущий проблемный код: {current_code}
-
-        ТРЕБОВАНИЯ К ИСПРАВЛЕНИЮ:
-        1. Код должен быть валидным HTML/JSON-LD
-        2. Соответствовать стандартам W3C
-        3. Учитывать лучшие практики SEO
-        4. Быть оптимальным для LLM и поисковых систем
-
-        ФОРМАТ ОТВЕТА - ТОЛЬКО JSON:
-        
-            "fixed_code": "полный исправленный код",
-            "explanation": "краткое объяснение на русском что было исправлено и почему",
-            "changes": ["конкретное изменение 1", "конкретное изменение 2", "конкретное изменение 3"]
-
-        ВАЖНО: Верни только JSON объект, без дополнительного текста.
-        """
+    def _send_gpt_batch_request(self, problems_data):
+        """Отправка батч-запроса к YandexGPT для всех проблем сразу"""
+        if not problems_data or not self.yandex_gpt_api_key:
+            return [self._create_error_response() for _ in problems_data]
 
         try:
-            # Реальная реализация для YandexGPT API
+            # Создаем один большой промпт со всеми проблемами
+            problems_text = ""
+            for i, problem in enumerate(problems_data, 1):
+                problems_text += f"""
+ПРОБЛЕМА {i}:
+- URL: {problem['url']}
+- Проблема: {problem['problem_description']}
+- Текущий код: {problem['current_code']}
+
+"""
+
+            prompt = f"""ПРОАНАЛИЗИРУЙ СЛЕДУЮЩИЕ ПРОБЛЕМЫ И ВЕРНИ ИСПРАВЛЕННЫЙ КОД ДЛЯ КАЖДОЙ:
+
+{problems_text}
+
+ТРЕБОВАНИЯ К ИСПРАВЛЕНИЮ ДЛЯ КАЖДОЙ ПРОБЛЕМЫ:
+1. Код должен быть валидным HTML/JSON-LD
+2. Соответствовать стандартам W3C
+3. Учитывать лучшие практики SEO
+4. Быть оптимальным для LLM и поисковых систем
+
+ФОРМАТ ОТВЕТА - ТОЛЬКО JSON МАССИВ:
+[
+    {{
+        "fixed_code": "исправленный код для проблемы 1",
+        "explanation": "объяснение для проблемы 1 на русском",
+        "changes": ["изменение 1", "изменение 2"]
+    }},
+    {{
+        "fixed_code": "исправленный код для проблемы 2", 
+        "explanation": "объяснение для проблемы 2 на русском",
+        "changes": ["изменение 1", "изменение 2"]
+    }}
+]
+
+ВАЖНО: Верни ТОЛЬКО JSON массив с объектами в том же порядке, что и проблемы выше.
+"""
+
             headers = {
                 'Authorization': f'Api-Key {self.yandex_gpt_api_key}',
                 'Content-Type': 'application/json'
@@ -60,31 +65,57 @@ class WebsiteAnalyzer:
 
             payload = {
                 "modelUri": f"gpt://b1g80nc4mkh3lm4s25h7/yandexgpt/latest",
-                "completionOptions": {"stream": False, "temperature": 0.1, "maxTokens": "2000"},
+                "completionOptions": {"stream": False, "temperature": 0.1, "maxTokens": "4000"},
                 "messages": [
-                    {"role": "system", "text": 'Ты - эксперт по SEO оптимизации и веб-разработке. Проанализируй проблему и предложи конкретное исправление.'},
+                    {"role": "system",
+                     "text": 'Ты - эксперт по SEO оптимизации и веб-разработке. Проанализируй все проблемы и предложи конкретные исправления для каждой.'},
                     {"role": "user", "text": prompt}
                 ]
             }
 
             response = requests.post(
                 "https://llm.api.cloud.yandex.net/foundationModels/v1/completion",
-            headers = headers,
-            json = payload,
-            timeout = 30
+                headers=headers,
+                json=payload,
+                timeout=60
             )
             response.raise_for_status()
-            raw_text = response.json()['result']['alternatives'][0]['message']['text'].replace('```', '')
-            return json.loads(raw_text)
 
+            result = response.json()
+            alternatives = result.get('result', {}).get('alternatives', [])
+
+            if alternatives:
+                raw_text = alternatives[0].get('message', {}).get('text', '').strip()
+                print(f"Raw GPT response: {raw_text}")  # Для отладки
+
+                # Очищаем ответ от возможных markdown блоков
+                cleaned_text = raw_text.replace('```json', '').replace('```', '').strip()
+
+                try:
+                    gpt_responses = json.loads(cleaned_text)
+                    if isinstance(gpt_responses, list):
+                        return gpt_responses
+                    else:
+                        # Если вернулся не массив, создаем ошибки
+                        return [self._create_error_response("Неверный формат ответа от AI") for _ in problems_data]
+                except json.JSONDecodeError as e:
+                    print(f"JSON decode error: {e}")
+                    return [self._create_error_response(f"Ошибка парсинга JSON: {str(e)}") for _ in problems_data]
+
+            return [self._create_error_response("Пустой ответ от API") for _ in problems_data]
 
         except Exception as e:
-            return {
-                "fixed_code": current_code,
-                "explanation": f"Ошибка при обращении к YandexGPT API: {str(e)}",
-                "changes": ["Не удалось получить исправление от AI"],
-                "error": "API_CALL_ERROR"
-            }
+            print(f"Ошибка при обращении к YandexGPT API: {e}")
+            return [self._create_error_response(f"API ошибка: {str(e)}") for _ in problems_data]
+
+    def _create_error_response(self, error_msg="API ключ не настроен"):
+        """Создание ответа об ошибке"""
+        return {
+            "fixed_code": "",
+            "explanation": f"Ошибка: {error_msg}",
+            "changes": ["Не удалось получить исправление от AI"],
+            "error": "API_ERROR"
+        }
 
     def analyze_website(self, url):
         """Основной метод анализа сайта"""
@@ -116,7 +147,8 @@ class WebsiteAnalyzer:
                 "validation": self._validate_meta_tags(soup, url)
             }
 
-            results["recommendations"] = self._generate_recommendations(results)
+            # Генерация рекомендаций с батч-обработкой
+            results["recommendations"] = self._generate_recommendations_with_batch(results, url)
 
             return results
 
@@ -124,6 +156,226 @@ class WebsiteAnalyzer:
             print(f"Ошибка анализа сайта: {e}")
             return {"error": str(e)}
 
+    def _generate_recommendations_with_batch(self, results, url):
+        """Генерация рекомендаций с батч-обработкой через YandexGPT"""
+        # Собираем все данные о проблемах
+        recommendations_data = self._collect_recommendations_data(results, url)
+
+        if not recommendations_data:
+            return []
+
+        print(f"Найдено проблем для AI обработки: {len(recommendations_data)}")
+
+        # Отправляем ВСЕ проблемы ОДНИМ запросом
+        gpt_responses = self._send_gpt_batch_request(recommendations_data)
+
+        # Собираем финальные рекомендации
+        final_recommendations = []
+        for i, rec_data in enumerate(recommendations_data):
+            gpt_response = gpt_responses[i] if i < len(gpt_responses) else self._create_error_response()
+
+            final_recommendations.append({
+                "type": rec_data["type"],
+                "title": rec_data["title"],
+                "message": rec_data["message"],
+                "current_code": rec_data["current_code"],
+                "fixed_code": gpt_response.get("fixed_code", rec_data["current_code"]),
+                "explanation": gpt_response.get("explanation", "Не удалось получить объяснение от AI"),
+                "changes": gpt_response.get("changes", []),
+                "gpt_error": gpt_response.get("error")
+            })
+
+        return final_recommendations
+
+    def _collect_recommendations_data(self, results, url):
+        """Сбор всех данных для рекомендаций перед отправкой в GPT"""
+        recommendations_data = []
+
+        semantic = results["semantic_clarity"]
+        headers = results["headers"]
+        structured = results["structured_data"]
+        author = results["author_signals"]
+        dates = results["dates"]
+        social = results["social_meta"]
+        canonical = results["canonical"]
+        llm = results["llm_accessibility"]
+        validation = results["validation"]
+
+        # Анализ Title
+        if not semantic["title_optimal"] and semantic["title"]:
+            if semantic["title_length"] < 50:
+                recommendations_data.append({
+                    "type": "warning",
+                    "title": "Title слишком короткий",
+                    "message": f"Длина Title: {semantic['title_length']} символов (рекомендуется 50-60)",
+                    "current_code": f"<title>{semantic['title']}</title>",
+                    "problem_description": f"Title слишком короткий: {semantic['title_length']} символов вместо рекомендуемых 50-60. Текущий title: '{semantic['title']}'",
+                    "url": url
+                })
+            elif semantic["title_length"] > 60:
+                recommendations_data.append({
+                    "type": "warning",
+                    "title": "Title слишком длинный",
+                    "message": f"Длина Title: {semantic['title_length']} символов (рекомендуется 50-60)",
+                    "current_code": f"<title>{semantic['title']}</title>",
+                    "problem_description": f"Title слишком длинный: {semantic['title_length']} символов вместо рекомендуемых 50-60. Текущий title: '{semantic['title']}'",
+                    "url": url
+                })
+
+        # Анализ Description
+        if not semantic["description_optimal"] and semantic["description"]:
+            if semantic["description_length"] < 150:
+                recommendations_data.append({
+                    "type": "warning",
+                    "title": "Meta Description слишком короткий",
+                    "message": f"Длина Description: {semantic['description_length']} символов (рекомендуется 150-160)",
+                    "current_code": f'<meta name="description" content="{semantic["description"]}">',
+                    "problem_description": f"Meta Description слишком короткий: {semantic['description_length']} символов вместо 150-160. Текущий description: '{semantic['description']}'",
+                    "url": url
+                })
+            elif semantic["description_length"] > 160:
+                recommendations_data.append({
+                    "type": "warning",
+                    "title": "Meta Description слишком длинный",
+                    "message": f"Длина Description: {semantic['description_length']} символов (рекомендуется 150-160)",
+                    "current_code": f'<meta name="description" content="{semantic["description"]}">',
+                    "problem_description": f"Meta Description слишком длинный: {semantic['description_length']} символов вместо 150-160. Текущий description: '{semantic['description']}'",
+                    "url": url
+                })
+
+        # Анализ H1
+        if not headers["h1_optimal"]:
+            if headers["h1_count"] == 0:
+                recommendations_data.append({
+                    "type": "critical",
+                    "title": "Отсутствует H1 заголовок",
+                    "message": "На странице не найден тег H1",
+                    "current_code": "<!-- H1 заголовок отсутствует -->",
+                    "problem_description": "На странице отсутствует H1 заголовок. H1 необходим для SEO и структуры контента.",
+                    "url": url
+                })
+            elif headers["h1_count"] > 1:
+                h1_examples = "\n".join([f"<h1>{h1}</h1>" for h1 in headers["h1_examples"]])
+                recommendations_data.append({
+                    "type": "warning",
+                    "title": "Слишком много H1 заголовков",
+                    "message": f"Найдено {headers['h1_count']} H1 тегов (рекомендуется 1)",
+                    "current_code": h1_examples,
+                    "problem_description": f"На странице найдено {headers['h1_count']} H1 заголовков, нужно оставить только один. Примеры текущих H1: {headers['h1_examples']}",
+                    "url": url
+                })
+
+        # Синхронизация Title и H1
+        if not semantic["title_h1_match"] and semantic["title"] and semantic["h1"]:
+            recommendations_data.append({
+                "type": "warning",
+                "title": "Title и H1 не синхронизированы",
+                "message": "Заголовок в Title и H1 должны быть согласованы",
+                "current_code": f"<title>{semantic['title']}</title>\n<h1>{semantic['h1']}</h1>",
+                "problem_description": f"Title и H1 не синхронизированы. Title: '{semantic['title']}', H1: '{semantic['h1']}'. Они должны быть согласованы для лучшего SEO.",
+                "url": url
+            })
+
+        # Структурированные данные
+        if not structured["has_structured_data"]:
+            recommendations_data.append({
+                "type": "info",
+                "title": "Отсутствуют структурированные данные",
+                "message": "Не найден JSON-LD или микроразметка Schema.org",
+                "current_code": "<!-- Структурированные данные отсутствуют -->",
+                "problem_description": "Отсутствуют структурированные данные (JSON-LD) для поисковых систем и LLM. JSON-LD помогает поисковым системам лучше понимать контент.",
+                "url": url
+            })
+
+        # Авторство
+        if not author["has_author_signals"]:
+            recommendations_data.append({
+                "type": "warning",
+                "title": "Не указана информация об авторе",
+                "message": "Отсутствуют сигналы авторства и экспертизы",
+                "current_code": "<!-- Информация об авторе отсутствует -->",
+                "problem_description": "Отсутствуют сигналы авторства и экспертизы (EEAT). Необходимо добавить информацию об авторе для повышения доверия.",
+                "url": url
+            })
+
+        # Даты
+        if not dates["has_dates"]:
+            recommendations_data.append({
+                "type": "info",
+                "title": "Не указаны даты публикации",
+                "message": "Отсутствуют метатеги с датами публикации и обновления",
+                "current_code": "<!-- Даты не указаны -->",
+                "problem_description": "Отсутствуют метатеги с датами публикации и обновления. Даты важны для определения актуальности контента.",
+                "url": url
+            })
+
+        # Социальные метатеги
+        if not social["has_social_meta"]:
+            recommendations_data.append({
+                "type": "info",
+                "title": "Отсутствуют Open Graph теги",
+                "message": "Не найдены метатеги для социальных сетей",
+                "current_code": "<!-- Open Graph теги отсутствуют -->",
+                "problem_description": "Отсутствуют Open Graph теги для социальных сетей. OG теги улучшают отображение при расшаривании в соцсетях.",
+                "url": url
+            })
+
+        # Canonical
+        if not canonical["is_self_canonical"] and canonical["canonical"]:
+            recommendations_data.append({
+                "type": "warning",
+                "title": "Некорректный canonical URL",
+                "message": f"Canonical ссылка указывает на: {canonical['canonical']}",
+                "current_code": f'<link rel="canonical" href="{canonical["canonical"]}">',
+                "problem_description": f"Canonical URL указывает на другой адрес: {canonical['canonical']} вместо {url}. Canonical должен указывать на текущую страницу.",
+                "url": url
+            })
+
+        # LLM доступность
+        if not llm["llm_friendly"]:
+            if 'noindex' in llm["robots_meta"].lower():
+                recommendations_data.append({
+                    "type": "critical",
+                    "title": "Страница закрыта от индексации",
+                    "message": "Robots meta тег содержит noindex",
+                    "current_code": f'<meta name="robots" content="{llm["robots_meta"]}">',
+                    "problem_description": f"Robots meta тег содержит 'noindex': {llm['robots_meta']}. Это запрещает индексацию страницы поисковыми системами и LLM.",
+                    "url": url
+                })
+            elif not llm["max_snippet"]:
+                recommendations_data.append({
+                    "type": "info",
+                    "title": "Не настроены разрешения для LLM",
+                    "message": "Отсутствует max-snippet:-1 в robots meta",
+                    "current_code": f'<meta name="robots" content="{llm["robots_meta"]}">',
+                    "problem_description": f"Отсутствует max-snippet:-1 в robots meta теге: {llm['robots_meta']}. max-snippet:-1 разрешает LLM использовать фрагменты контента.",
+                    "url": url
+                })
+
+        # Критические ошибки из валидации
+        for issue in validation["issues"]:
+            if "Title слишком короткий" in issue and semantic["title"]:
+                recommendations_data.append({
+                    "type": "critical",
+                    "title": "Критическая ошибка: Title",
+                    "message": issue,
+                    "current_code": f"<title>{semantic['title']}</title>",
+                    "problem_description": f"Критическая ошибка: Title слишком короткий ({semantic['title_length']} символов). Минимальная рекомендуемая длина - 10 символов.",
+                    "url": url
+                })
+            elif "Отсутствует тег <title>" in issue:
+                recommendations_data.append({
+                    "type": "critical",
+                    "title": "Критическая ошибка: отсутствует Title",
+                    "message": issue,
+                    "current_code": "<!-- Title отсутствует -->",
+                    "problem_description": "Критическая ошибка: отсутствует тег <title>. Title обязателен для корректной индексации страницы.",
+                    "url": url
+                })
+
+        return recommendations_data
+
+    # ОСТАЛЬНЫЕ МЕТОДЫ АНАЛИЗА (без изменений)
     def _analyze_semantic_clarity(self, soup):
         """Анализ семантической ясности"""
         title_tag = soup.find('title')
@@ -423,311 +675,3 @@ class WebsiteAnalyzer:
             "issues": issues,
             "issue_count": len(issues)
         }
-
-    def _generate_recommendations(self, results):
-        """Генерация рекомендаций с исправлениями от YandexGPT"""
-        recommendations = []
-
-        semantic = results["semantic_clarity"]
-        headers = results["headers"]
-        structured = results["structured_data"]
-        author = results["author_signals"]
-        dates = results["dates"]
-        social = results["social_meta"]
-        canonical = results["canonical"]
-        eeat = results["eeat"]
-        validation = results["validation"]
-        llm = results["llm_accessibility"]
-        structure = results["structure"]
-        special_content = results["special_content"]
-        content_sync = results["content_sync"]
-
-        # Анализ Title
-        if not semantic["title_optimal"]:
-            if semantic["title_length"] < 50:
-                gpt_fix = self._get_yandex_gpt_fix(
-                    f"Title слишком короткий: {semantic['title_length']} символов вместо рекомендуемых 50-60. Текущий title: '{semantic['title']}'",
-                    f"<title>{semantic['title']}</title>",
-                    results["url"]
-                )
-                print(gpt_fix)
-                recommendations.append({
-                    "type": "warning",
-                    "title": "Title слишком короткий",
-                    "message": f"Длина Title: {semantic['title_length']} символов (рекомендуется 50-60)",
-                    "current_code": f"<title>{semantic['title']}</title>",
-                    "fixed_code": gpt_fix["fixed_code"],
-                    "explanation": gpt_fix["explanation"],
-                    "changes": gpt_fix.get("changes", [])
-                    
-                })
-
-            elif semantic["title_length"] > 60:
-                gpt_fix = self._get_yandex_gpt_fix(
-                    f"Title слишком длинный: {semantic['title_length']} символов вместо рекомендуемых 50-60. Текущий title: '{semantic['title']}'",
-                    f"<title>{semantic['title']}</title>",
-                    results["url"]
-                )
-
-                recommendations.append({
-                    "type": "warning",
-                    "title": "Title слишком длинный",
-                    "message": f"Длина Title: {semantic['title_length']} символов (рекомендуется 50-60)",
-                    "current_code": f"<title>{semantic['title']}</title>",
-                    "fixed_code": gpt_fix["fixed_code"],
-                    "explanation": gpt_fix["explanation"],
-                    "changes": gpt_fix.get("changes", [])
-                    
-                })
-
-        # Анализ Description
-        if not semantic["description_optimal"]:
-            if semantic["description_length"] < 150:
-                gpt_fix = self._get_yandex_gpt_fix(
-                    f"Meta Description слишком короткий: {semantic['description_length']} символов вместо 150-160. Текущий description: '{semantic['description']}'",
-                    f'<meta name="description" content="{semantic["description"]}">',
-                    results["url"]
-                )
-                recommendations.append({
-                    "type": "warning",
-                    "title": "Meta Description слишком короткий",
-                    "message": f"Длина Description: {semantic['description_length']} символов (рекомендуется 150-160)",
-                    "current_code": f'<meta name="description" content="{semantic["description"]}">',
-                    "fixed_code": gpt_fix["fixed_code"],
-                    "explanation": gpt_fix["explanation"],
-                    "changes": gpt_fix.get("changes", [])
-                    
-                })
-
-            elif semantic["description_length"] > 160:
-                gpt_fix = self._get_yandex_gpt_fix(
-                    f"Meta Description слишком длинный: {semantic['description_length']} символов вместо 150-160. Текущий description: '{semantic['description']}'",
-                    f'<meta name="description" content="{semantic["description"]}">',
-                    results["url"]
-                )
-                recommendations.append({
-                    "type": "warning",
-                    "title": "Meta Description слишком длинный",
-                    "message": f"Длина Description: {semantic['description_length']} символов (рекомендуется 150-160)",
-                    "current_code": f'<meta name="description" content="{semantic["description"]}">',
-                    "fixed_code": gpt_fix["fixed_code"],
-                    "explanation": gpt_fix["explanation"],
-                    "changes": gpt_fix.get("changes", [])
-                    
-                })
-
-        # Анализ H1
-        if not headers["h1_optimal"]:
-            if headers["h1_count"] == 0:
-                gpt_fix = self._get_yandex_gpt_fix(
-                    "На странице отсутствует H1 заголовок. H1 необходим для SEO и структуры контента.",
-                    "<!-- H1 заголовок отсутствует -->",
-                    results["url"]
-                )
-                recommendations.append({
-                    "type": "critical",
-                    "title": "Отсутствует H1 заголовок",
-                    "message": "На странице не найден тег H1",
-                    "current_code": "<!-- H1 заголовок отсутствует -->",
-                    "fixed_code": gpt_fix["fixed_code"],
-                    "explanation": gpt_fix["explanation"],
-                    "changes": gpt_fix.get("changes", [])
-                    
-                })
-
-            elif headers["h1_count"] > 1:
-                h1_examples = "\n".join([f"<h1>{h1}</h1>" for h1 in headers["h1_examples"]])
-                gpt_fix = self._get_yandex_gpt_fix(
-                    f"На странице найдено {headers['h1_count']} H1 заголовков, нужно оставить только один. Примеры текущих H1: {headers['h1_examples']}",
-                    h1_examples,
-                    results["url"]
-                )
-                recommendations.append({
-                    "type": "warning",
-                    "title": "Слишком много H1 заголовков",
-                    "message": f"Найдено {headers['h1_count']} H1 тегов (рекомендуется 1)",
-                    "current_code": h1_examples,
-                    "fixed_code": gpt_fix["fixed_code"],
-                    "explanation": gpt_fix["explanation"],
-                    "changes": gpt_fix.get("changes", [])
-                    
-                })
-        # Синхронизация Title и H1
-        if not semantic["title_h1_match"] and semantic["title"] and semantic["h1"]:
-            gpt_fix = self._get_yandex_gpt_fix(
-                f"Title и H1 не синхронизированы. Title: '{semantic['title']}', H1: '{semantic['h1']}'. Они должны быть согласованы для лучшего SEO.",
-                f"<title>{semantic['title']}</title>\n<h1>{semantic['h1']}</h1>",
-                results["url"]
-            )
-            recommendations.append({
-                "type": "warning",
-                "title": "Title и H1 не синхронизированы",
-                "message": "Заголовок в Title и H1 должны быть согласованы",
-                "current_code": f"<title>{semantic['title']}</title>\n<h1>{semantic['h1']}</h1>",
-                "fixed_code": gpt_fix["fixed_code"],
-                "explanation": gpt_fix["explanation"],
-                "changes": gpt_fix.get("changes", [])
-                
-            })
-
-        # Структурированные данные
-        if not structured["has_structured_data"]:
-            gpt_fix = self._get_yandex_gpt_fix(
-                "Отсутствуют структурированные данные (JSON-LD) для поисковых систем и LLM. JSON-LD помогает поисковым системам лучше понимать контент.",
-                "<!-- Структурированные данные отсутствуют -->",
-                results["url"]
-            )
-            recommendations.append({
-                "type": "info",
-                "title": "Отсутствуют структурированные данные",
-                "message": "Не найден JSON-LD или микроразметка Schema.org",
-                "current_code": "<!-- Структурированные данные отсутствуют -->",
-                "fixed_code": gpt_fix["fixed_code"],
-                "explanation": gpt_fix["explanation"],
-                "changes": gpt_fix.get("changes", [])
-                
-            })
-
-        # Авторство
-        if not author["has_author_signals"]:
-            gpt_fix = self._get_yandex_gpt_fix(
-                "Отсутствуют сигналы авторства и экспертизы (EEAT). Необходимо добавить информацию об авторе для повышения доверия.",
-                "<!-- Информация об авторе отсутствует -->",
-                results["url"]
-            )
-            recommendations.append({
-                "type": "warning",
-                "title": "Не указана информация об авторе",
-                "message": "Отсутствуют сигналы авторства и экспертизы",
-                "current_code": "<!-- Информация об авторе отсутствует -->",
-                "fixed_code": gpt_fix["fixed_code"],
-                "explanation": gpt_fix["explanation"],
-                "changes": gpt_fix.get("changes", [])
-                
-            })
-
-        # Даты
-        if not dates["has_dates"]:
-            gpt_fix = self._get_yandex_gpt_fix(
-                "Отсутствуют метатеги с датами публикации и обновления. Даты важны для определения актуальности контента.",
-                "<!-- Даты публикации и обновления не указаны -->",
-                results["url"]
-            )
-            recommendations.append({
-                "type": "info",
-                "title": "Не указаны даты публикации",
-                "message": "Отсутствуют метатеги с датами публикации и обновления",
-                "current_code": "<!-- Даты не указаны -->",
-                "fixed_code": gpt_fix["fixed_code"],
-                "explanation": gpt_fix["explanation"],
-                "changes": gpt_fix.get("changes", [])
-                
-            })
-
-        # Социальные метатеги
-        if not social["has_social_meta"]:
-            gpt_fix = self._get_yandex_gpt_fix(
-                "Отсутствуют Open Graph теги для социальных сетей. OG теги улучшают отображение при расшаривании в соцсетях.",
-                "<!-- Open Graph теги отсутствуют -->",
-                results["url"]
-            )
-            recommendations.append({
-                "type": "info",
-                "title": "Отсутствуют Open Graph теги",
-                "message": "Не найдены метатеги для социальных сетей",
-                "current_code": "<!-- Open Graph теги отсутствуют -->",
-                "fixed_code": gpt_fix["fixed_code"],
-                "explanation": gpt_fix["explanation"],
-                "changes": gpt_fix.get("changes", [])
-                
-            })
-
-        # Canonical
-        if not canonical["is_self_canonical"] and canonical["canonical"]:
-            gpt_fix = self._get_yandex_gpt_fix(
-                f"Canonical URL указывает на другой адрес: {canonical['canonical']} вместо {results['url']}. Canonical должен указывать на текущую страницу.",
-                f'<link rel="canonical" href="{canonical["canonical"]}">',
-                results["url"]
-            )
-            recommendations.append({
-                "type": "warning",
-                "title": "Некорректный canonical URL",
-                "message": f"Canonical ссылка указывает на: {canonical['canonical']}",
-                "current_code": f'<link rel="canonical" href="{canonical["canonical"]}">',
-                "fixed_code": gpt_fix["fixed_code"],
-                "explanation": gpt_fix["explanation"],
-                "changes": gpt_fix.get("changes", [])
-                
-            })
-
-        # LLM доступность
-        if not llm["llm_friendly"]:
-            if 'noindex' in llm["robots_meta"].lower():
-                gpt_fix = self._get_yandex_gpt_fix(
-                    f"Robots meta тег содержит 'noindex': {llm['robots_meta']}. Это запрещает индексацию страницы поисковыми системами и LLM.",
-                    f'<meta name="robots" content="{llm["robots_meta"]}">',
-                    results["url"]
-                )
-                recommendations.append({
-                    "type": "critical",
-                    "title": "Страница закрыта от индексации",
-                    "message": "Robots meta тег содержит noindex",
-                    "current_code": f'<meta name="robots" content="{llm["robots_meta"]}">',
-                    "fixed_code": gpt_fix["fixed_code"],
-                    "explanation": gpt_fix["explanation"],
-                    "changes": gpt_fix.get("changes", [])
-                    
-                })
-            elif not llm["max_snippet"]:
-                gpt_fix = self._get_yandex_gpt_fix(
-                    f"Отсутствует max-snippet:-1 в robots meta теге: {llm['robots_meta']}. max-snippet:-1 разрешает LLM использовать фрагменты контента.",
-                    f'<meta name="robots" content="{llm["robots_meta"]}">',
-                    results["url"]
-                )
-                recommendations.append({
-                    "type": "info",
-                    "title": "Не настроены разрешения для LLM",
-                    "message": "Отсутствует max-snippet:-1 в robots meta",
-                    "current_code": f'<meta name="robots" content="{llm["robots_meta"]}">',
-                    "fixed_code": gpt_fix["fixed_code"],
-                    "explanation": gpt_fix["explanation"],
-                    "changes": gpt_fix.get("changes", [])
-                    
-                })
-
-        # Критические ошибки из валидации
-        for issue in validation["issues"]:
-            if "Title слишком короткий" in issue and semantic["title"]:
-                gpt_fix = self._get_yandex_gpt_fix(
-                    f"Критическая ошибка: Title слишком короткий ({semantic['title_length']} символов). Минимальная рекомендуемая длина - 10 символов.",
-                    f"<title>{semantic['title']}</title>",
-                    results["url"]
-                )
-                recommendations.append({
-                    "type": "critical",
-                    "title": "Критическая ошибка: Title",
-                    "message": issue,
-                    "current_code": f"<title>{semantic['title']}</title>",
-                    "fixed_code": gpt_fix["fixed_code"],
-                    "explanation": gpt_fix["explanation"],
-                    "changes": gpt_fix.get("changes", [])
-                    
-                })
-            elif "Отсутствует тег <title>" in issue:
-                gpt_fix = self._get_yandex_gpt_fix(
-                    "Критическая ошибка: отсутствует тег <title>. Title обязателен для корректной индексации страницы.",
-                    "<!-- Title отсутствует -->",
-                    results["url"]
-                )
-                recommendations.append({
-                    "type": "critical",
-                    "title": "Критическая ошибка: отсутствует Title",
-                    "message": issue,
-                    "current_code": "<!-- Title отсутствует -->",
-                    "fixed_code": gpt_fix["fixed_code"],
-                    "explanation": gpt_fix["explanation"],
-                    "changes": gpt_fix.get("changes", [])
-                    
-                })
-
-        return recommendations
