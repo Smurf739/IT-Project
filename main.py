@@ -62,12 +62,10 @@ def register():
     return render_template('register.html')
 
 
-#Main func lol
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
-        # Проверяем, пришли ли данные в формате JSON или form-data
         if request.is_json:
             data = request.get_json()
             url = data.get('url', '').strip()
@@ -82,7 +80,6 @@ def analyze():
         if not url.startswith(('http://', 'https://')):
             url = 'https://' + url
 
-        # Анализ с помощью первой модели (GEO анализ)
         geo_data = fetch_geo_analysis(url)
 
         table = []
@@ -102,21 +99,17 @@ def analyze():
             "Описание": overall.get("recommendations", "Рекомендации недоступны")
         })
 
-        # Анализ с помощью второй модели (WebsiteAnalyzer)
         website_results = WebsiteAnalyzer().analyze_website(url)
 
-        # Формируем объединенные результаты
         combined_results = {
             "url": url,
             "load_time": f"{time.time():.2f} сек",
             "geo_analysis": table,
         }
 
-        # Объединяем все данные из website_results
         if isinstance(website_results, dict):
             combined_results.update(website_results)
 
-        # Формируем ответ в зависимости от типа запроса
         if request.is_json:
             response_data = {
                 "success": True,
@@ -139,7 +132,7 @@ def analyze():
 
 
 
-@app.route('/profile') #soon
+@app.route('/profile')
 def profile():
     if 'user_login' not in session:
         return redirect(url_for('login'))

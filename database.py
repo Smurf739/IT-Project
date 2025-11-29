@@ -44,14 +44,13 @@ class TariffPlan:
             history TEXT)''')
         self.conn.commit()
 
-        # Инициализируем планировщик
         self.scheduler = BackgroundScheduler()
         self.start_scheduler()
 
     def get_tariff_settings(self, tariff_name):
         tariff_settings = {
             "Бесплатный": {
-                "max_requests": -1, # Пока тестим
+                "max_requests": -1,
                 "api_perm": False,
                 "history_life_days": 30,
                 "price": 0,
@@ -80,7 +79,7 @@ class TariffPlan:
                 }
             },
             "Бизнес": {
-                "max_requests": -1,  # Неограниченно
+                "max_requests": -1,
                 "api_perm": True,
                 "history_life_days": 365,
                 "price": 2990,
@@ -136,8 +135,7 @@ class TariffPlan:
         if tariff_name == "Бесплатный":
             end_date = None
         else:
-            # Для демонстрации - короткое время
-            end_date = datetime.now() + timedelta(seconds=30)  # 30 секунд для теста
+            end_date = datetime.now() + timedelta(seconds=30)
 
         try:
             if end_date:
@@ -205,7 +203,6 @@ class TariffPlan:
 
     def reset_monthly_requests(self):
         try:
-            # Сбрасываем счетчики для всех пользователей
             self.cursor.execute('''UPDATE TariffPlan SET number_of_count = 0''')
             self.conn.commit()
             print(f"{datetime.now()}: Ежемесячные запросы сброшены для всех пользователей")
@@ -249,14 +246,12 @@ class TariffPlan:
             print(f"Ошибка при проверке просроченных тарифов: {e}")
 
     def start_scheduler(self):
-        # Ежедневная проверка просроченных тарифов
         self.scheduler.add_job(
             self.check_expired_tariffs,
             CronTrigger(hour=0, minute=0),
             id='daily_expired_check'
         )
 
-        # Ежемесячный сброс запросов
         self.scheduler.add_job(
             self.reset_monthly_requests,
             CronTrigger(day=1, hour=0, minute=0),

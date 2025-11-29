@@ -20,7 +20,6 @@ class WebsiteAnalyzer:
             return [self._create_error_response() for _ in problems_data]
 
         try:
-            # Создаем один большой промпт со всеми проблемами
             problems_text = ""
             for i, problem in enumerate(problems_data, 1):
                 problems_text += f"""
@@ -86,9 +85,8 @@ class WebsiteAnalyzer:
 
             if alternatives:
                 raw_text = alternatives[0].get('message', {}).get('text', '').strip()
-                print(f"Raw GPT response: {raw_text}")  # Для отладки
+                print(f"Raw GPT response: {raw_text}")
 
-                # Очищаем ответ от возможных markdown блоков
                 cleaned_text = raw_text.replace('```json', '').replace('```', '').strip()
 
                 try:
@@ -96,7 +94,6 @@ class WebsiteAnalyzer:
                     if isinstance(gpt_responses, list):
                         return gpt_responses
                     else:
-                        # Если вернулся не массив, создаем ошибки
                         return [self._create_error_response("Неверный формат ответа от AI") for _ in problems_data]
                 except json.JSONDecodeError as e:
                     print(f"JSON decode error: {e}")
@@ -147,7 +144,6 @@ class WebsiteAnalyzer:
                 "validation": self._validate_meta_tags(soup, url)
             }
 
-            # Генерация рекомендаций с батч-обработкой
             results["recommendations"] = self._generate_recommendations_with_batch(results, url)
 
             return results
@@ -158,7 +154,6 @@ class WebsiteAnalyzer:
 
     def _generate_recommendations_with_batch(self, results, url):
         """Генерация рекомендаций с батч-обработкой через YandexGPT"""
-        # Собираем все данные о проблемах
         recommendations_data = self._collect_recommendations_data(results, url)
 
         if not recommendations_data:
@@ -166,10 +161,7 @@ class WebsiteAnalyzer:
 
         print(f"Найдено проблем для AI обработки: {len(recommendations_data)}")
 
-        # Отправляем ВСЕ проблемы ОДНИМ запросом
         gpt_responses = self._send_gpt_batch_request(recommendations_data)
-
-        # Собираем финальные рекомендации
         final_recommendations = []
         for i, rec_data in enumerate(recommendations_data):
             gpt_response = gpt_responses[i] if i < len(gpt_responses) else self._create_error_response()
@@ -201,7 +193,6 @@ class WebsiteAnalyzer:
         llm = results["llm_accessibility"]
         validation = results["validation"]
 
-        # Анализ Title
         if not semantic["title_optimal"] and semantic["title"]:
             if semantic["title_length"] < 50:
                 recommendations_data.append({
@@ -222,7 +213,6 @@ class WebsiteAnalyzer:
                     "url": url
                 })
 
-        # Анализ Description
         if not semantic["description_optimal"] and semantic["description"]:
             if semantic["description_length"] < 150:
                 recommendations_data.append({
@@ -243,7 +233,6 @@ class WebsiteAnalyzer:
                     "url": url
                 })
 
-        # Анализ H1
         if not headers["h1_optimal"]:
             if headers["h1_count"] == 0:
                 recommendations_data.append({
@@ -265,7 +254,6 @@ class WebsiteAnalyzer:
                     "url": url
                 })
 
-        # Синхронизация Title и H1
         if not semantic["title_h1_match"] and semantic["title"] and semantic["h1"]:
             recommendations_data.append({
                 "type": "warning",
@@ -276,7 +264,6 @@ class WebsiteAnalyzer:
                 "url": url
             })
 
-        # Структурированные данные
         if not structured["has_structured_data"]:
             recommendations_data.append({
                 "type": "info",
@@ -287,7 +274,6 @@ class WebsiteAnalyzer:
                 "url": url
             })
 
-        # Авторство
         if not author["has_author_signals"]:
             recommendations_data.append({
                 "type": "warning",
@@ -298,7 +284,7 @@ class WebsiteAnalyzer:
                 "url": url
             })
 
-        # Даты
+
         if not dates["has_dates"]:
             recommendations_data.append({
                 "type": "info",
@@ -309,7 +295,7 @@ class WebsiteAnalyzer:
                 "url": url
             })
 
-        # Социальные метатеги
+
         if not social["has_social_meta"]:
             recommendations_data.append({
                 "type": "info",
@@ -319,8 +305,6 @@ class WebsiteAnalyzer:
                 "problem_description": "Отсутствуют Open Graph теги для социальных сетей. OG теги улучшают отображение при расшаривании в соцсетях.",
                 "url": url
             })
-
-        # Canonical
         if not canonical["is_self_canonical"] and canonical["canonical"]:
             recommendations_data.append({
                 "type": "warning",
@@ -331,7 +315,6 @@ class WebsiteAnalyzer:
                 "url": url
             })
 
-        # LLM доступность
         if not llm["llm_friendly"]:
             if 'noindex' in llm["robots_meta"].lower():
                 recommendations_data.append({
@@ -352,7 +335,6 @@ class WebsiteAnalyzer:
                     "url": url
                 })
 
-        # Критические ошибки из валидации
         for issue in validation["issues"]:
             if "Title слишком короткий" in issue and semantic["title"]:
                 recommendations_data.append({
@@ -375,7 +357,6 @@ class WebsiteAnalyzer:
 
         return recommendations_data
 
-    # ОСТАЛЬНЫЕ МЕТОДЫ АНАЛИЗА (без изменений)
     def _analyze_semantic_clarity(self, soup):
         """Анализ семантической ясности"""
         title_tag = soup.find('title')

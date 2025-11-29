@@ -82,7 +82,7 @@ class TariffPlan:
                 }
             },
             "Бизнес": {
-                "max_requests": -1,  # Неограниченно
+                "max_requests": -1,
                 "api_perm": True,
                 "history_life_days": 365,
                 "price": 2990,
@@ -129,7 +129,6 @@ class TariffPlan:
         if not payment_successful:
             return False, "Оплата не прошла"
 
-        # Проверяем существование пользователя
         self.cursor.execute('SELECT password FROM TariffPlan WHERE user_login = ?', (user_login,))
         user_exists = self.cursor.fetchone()
 
@@ -138,14 +137,11 @@ class TariffPlan:
 
         tariff_settings = self.get_tariff_settings(tariff_name)
 
-        # Для бесплатного тарифа нет даты окончания
         if tariff_name == "Бесплатный":
             end_date = None
         else:
-            # end_date = datetime.now() + timedelta(days=tariff_settings["duration_days"])
             end_date = datetime.now() + timedelta(seconds=10)
         try:
-            # Обновляем тариф пользователя
             if end_date:
                 self.cursor.execute('''UPDATE TariffPlan SET 
                     tariff = ?, end_date_tariff = ?, 
@@ -156,7 +152,6 @@ class TariffPlan:
                                      tariff_settings["max_requests"], tariff_settings["api_perm"],
                                      tariff_settings["history_life_days"], user_login))
 
-                # Создаем задачу для автоматического окончания тарифа
                 self.schedule_tariff_expiration(user_login, end_date)
             else:
                 self.cursor.execute('''UPDATE TariffPlan SET 
@@ -177,7 +172,6 @@ class TariffPlan:
 
     def schedule_tariff_expiration(self, user_login, end_date):
         """Создает задачу для автоматического перевода на бесплатный тариф"""
-        # Создаем задачу на конкретную дату окончания тарифа
         scheduler.add_job(
             self.downgrade_to_free,
             'date',
@@ -198,11 +192,9 @@ class TariffPlan:
 
             current_count, max_count, tariff = result
 
-            # Проверяем лимит (кроме Бизнес тарифа)
             if max_count != -1 and current_count >= max_count:
                 return False, f"Лимит запросов исчерпан для тарифа {tariff}"
 
-            # Увеличиваем счетчик (кроме Бизнес тарифа)
             if max_count != -1:
                 self.cursor.execute('''UPDATE TariffPlan SET number_of_count = number_of_count + 1 
                                     WHERE user_login = ?''', (user_login,))
@@ -218,7 +210,6 @@ class TariffPlan:
     def reset_monthly_requests(self):
         """Сбрасывает месячные запросы для всех тарифов"""
         try:
-            # Сбрасываем счетчики для всех пользователей
             self.cursor.execute('''UPDATE TariffPlan SET number_of_count = 0''')
             self.conn.commit()
             print(f"{datetime.now()}: Ежемесячные запросы сброшены для всех пользователей")
@@ -266,21 +257,18 @@ class TariffPlan:
 
     def start_scheduler(self):
         """Запускает планировщик задач APScheduler"""
-        # Ежедневная проверка просроченных тарифов в 00:00 (резервная проверка)
         scheduler.add_job(
             self.check_expired_tariffs,
             CronTrigger(hour=0, minute=0),
             id='daily_expired_check'
         )
 
-        # Ежемесячный сброс счетчиков 1-го числа в 00:00
         scheduler.add_job(
             self.reset_monthly_requests,
             CronTrigger(day=1, hour=0, minute=0),
             id='monthly_reset'
         )
 
-        # Запускаем планировщик
         scheduler.start()
         print("Планировщик APScheduler запущен")
 
@@ -323,7 +311,6 @@ class TariffPlan:
         print("Планировщик остановлен, соединение с БД закрыто")
 
 
-# Пример использования
 if __name__ == "__main__":
     tariff_db = TariffPlan()
     scheduler = BackgroundScheduler()
@@ -332,31 +319,24 @@ if __name__ == "__main__":
     
     
     try:
-        # Регистрация нового пользователя
         success, message = tariff_db.register_user("user123", "password123")
         print(message)
 
-        # Покупка тарифа Pro
         success, message = tariff_db.purchase_tariff("user123", "Pro")
         print(message)
 
-        # Проверка и увеличение запроса
         success, message = tariff_db.check_and_increment_request("user123")
         print(message)
 
-        # Получение информации о пользователе
         user_info = tariff_db.get_user_info("user123")
         print(user_info)
 
-        # Получение доступных функций
         features = tariff_db.get_tariff_features("user123")
         print(features)
 
-        # Показать запланированные задачи
         jobs = tariff_db.get_scheduled_jobs()
         print(f"Запланированные задачи: {jobs}")
 
-        # Держим программу активной для демонстрации
         import time
 
         time.sleep(50)

@@ -17,9 +17,7 @@ def generate_api_key(user_password, bit_length=1024):
     def generate_large_prime(bit_length):
         """Генерирует большое простое число"""
         while True:
-            # Генерируем случайное число с указанной битовой длиной
             candidate = secrets.randbits(bit_length)
-            # Убеждаемся, что число нечетное и достаточно большое
             candidate |= (1 << bit_length - 1) | 1
 
             def is_prime(n, k=5):
@@ -29,14 +27,12 @@ def generate_api_key(user_password, bit_length=1024):
                 if n <= 1 or n % 2 == 0:
                     return False
 
-                # Находим r и s
                 s = 0
                 r = n - 1
                 while r & 1 == 0:
                     s += 1
                     r //= 2
 
-                # Проводим k тестов
                 for _ in range(k):
                     a = secrets.randbelow(n - 3) + 2
                     x = pow(a, r, n)
