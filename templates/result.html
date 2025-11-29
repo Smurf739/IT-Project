@@ -36,6 +36,158 @@
             </div>
         </div>
 
+
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Общая оценка и шансы в генеративном поиске
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Основной балл -->
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="display-1 fw-bold text-{{ 'success' if results.overall_analysis.overall_score >= 70 else 'warning' if results.overall_analysis.overall_score >= 50 else 'danger' }}">
+                            {{ results.overall_analysis.overall_score }}%
+                        </div>
+                        <div class="h5 text-muted">Общий балл</div>
+                        <div class="small text-muted mt-2">
+                            {{ results.overall_analysis.description }}
+                        </div>
+                    </div>
+
+                    <!-- Шансы в генеративном поиске -->
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="h2 fw-bold text-{{ 'success' if results.overall_analysis.gen_ai_chance in ['Очень высокий', 'Высокий'] else 'warning' if results.overall_analysis.gen_ai_chance == 'Хороший' else 'danger' }}">
+                            {{ results.overall_analysis.gen_ai_chance }}
+                        </div>
+                        <div class="h5 text-muted">Шанс в AI-поиске</div>
+                        <div class="small text-muted mt-2">
+                            Вероятность: {{ results.overall_analysis.chance_percentage }}
+                        </div>
+                    </div>
+
+                    <!-- Факторы оптимизации -->
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="h2 fw-bold text-info">
+                            {{ results.overall_analysis.positive_factors }}/{{ results.overall_analysis.total_factors }}
+                        </div>
+                        <div class="h5 text-muted">Ключевые факторы</div>
+                        <div class="small text-muted mt-2">
+                            Положительные показатели
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Детализация по категориям -->
+                <div class="mt-4">
+                    <h6 class="text-center mb-3">
+                        <i class="fas fa-chart-bar me-2"></i>Детализация по категориям
+                    </h6>
+                    <div class="row">
+                        {% for category, score in results.overall_analysis.category_scores.items() %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small">{{ category }}</span>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress" style="width: 100px; height: 8px;">
+                                        <div class="progress-bar bg-{{ 'success' if score >= 70 else 'warning' if score >= 50 else 'danger' }}"
+                                             style="width: {{ score }}%"></div>
+                                    </div>
+                                    <span class="small ms-2 fw-bold">{{ score }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Сильные и слабые стороны -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card border-success h-100">
+                            <div class="card-header bg-success text-white py-2">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-thumbs-up me-2"></i>Сильные стороны
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                {% if results.overall_analysis.strengths %}
+                                    {% for strength in results.overall_analysis.strengths %}
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        <span class="small">{{ strength }}</span>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted small mb-0">Сильные стороны не выявлены</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card border-danger h-100">
+                            <div class="card-header bg-danger text-white py-2">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-thumbs-down me-2"></i>Слабые стороны
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                {% if results.overall_analysis.weaknesses %}
+                                    {% for weakness in results.overall_analysis.weaknesses %}
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-exclamation text-danger me-2"></i>
+                                        <span class="small">{{ weakness }}</span>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted small mb-0">Слабые стороны не выявлены</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Рекомендации для улучшения -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6 class="mb-3">
+                        <i class="fas fa-bullseye me-2"></i>Стратегия улучшения
+                    </h6>
+                    {% if results.overall_analysis.overall_score >= 80 %}
+                    <p class="small text-success mb-2">
+                        <i class="fas fa-trophy me-2"></i>
+                        <strong>Отличный результат!</strong> Сайт хорошо оптимизирован.
+                        Сосредоточьтесь на поддержании текущих показателей и постепенном улучшении.
+                    </p>
+                    {% elif results.overall_analysis.overall_score >= 60 %}
+                    <p class="small text-warning mb-2">
+                        <i class="fas fa-chart-line me-2"></i>
+                        <strong>Хороший потенциал!</strong> Сайт имеет прочную основу.
+                        Устраните основные слабые стороны для значительного улучшения позиций.
+                    </p>
+                    {% else %}
+                    <p class="small text-danger mb-2">
+                        <i class="fas fa-tools me-2"></i>
+                        <strong>Требуется оптимизация!</strong> Начните с исправления критических ошибок
+                        и улучшения технических показателей.
+                    </p>
+                    {% endif %}
+
+                    <div class="small text-muted">
+                        <strong>Приоритеты:</strong>
+                        {% if results.overall_analysis.overall_score < 60 %}
+                        Техническая оптимизация → Семантика → Контент → Авторитетность
+                        {% elif results.overall_analysis.overall_score < 80 %}
+                        Качество контента → LLM-оптимизация → Авторитетность
+                        {% else %}
+                        Поддержание качества → Улучшение пользовательского опыта
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
                 <!-- В result.html замените блок рекомендаций на этот код -->
         {% if results.recommendations %}
         <div class="card mb-4 border-warning">

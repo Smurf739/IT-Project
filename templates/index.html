@@ -1,168 +1,273 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>CogniGeo — AI-анализ GEO для нового поколения поиска</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .geo-metric-badge { background: #f3e5f5; color: #7b1fa2; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; }
+        .metric-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .yandexgpt-badge { background: linear-gradient(135deg, #ffcc00, #ff6600); color: white; padding: 6px 12px; border-radius: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-brain logo-icon"></i>
+                    <span>CogniGeo</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#features">Возможности</a>
+                    <a href="#metrics">Метрики</a>
+                    <a href="#how-it-works">Как это работает</a>
+                    <a href="#pricing">Тарифы</a>
+                    <a href="/analyzer" class="text-black">Начать анализ</a>
+                </div>
+            </nav>
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="card shadow-lg border-0">
-            <div class="card-header bg-gradient-primary text-white py-3">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-search-location fa-2x me-3"></i>
-                    <div>
-                        <h4 class="mb-1">Анализ GEO-оптимизации сайта</h4>
-                        <p class="mb-0 opacity-75">Комплексная проверка для поисковых систем и AI-моделей</p>
+            <div class="hero">
+                <div class="hero-content">
+                    <h1>AI-анализ GEO для сайтов нового поколения</h1>
+                    <p class="hero-subtitle">
+                        Точная оценка по <strong>6 ключевым GEO метрикам</strong>.
+                        Итоговый вердикт и рекомендации формирует <br><br>  <span class="yandexgpt-badge">YandexGPT</span>
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="/analyzer" class="btn-primary btn-large">
+                            <i class="fas fa-robot"></i>
+                            Бесплатный AI-анализ
+                        </a>
+                        <a href="#metrics" class="btn-secondary btn-large">
+                            <i class="fas fa-list-check"></i>
+                            Все метрики
+                        </a>
                     </div>
                 </div>
-            </div>
-            
-            <div class="card-body p-4">
-                <!-- Форма анализа -->
-                <div class="row align-items-center mb-5">
-                    <div class="col-lg-8">
-                        <h5 class="text-dark mb-3">
-                            <i class="fas fa-link text-primary me-2"></i>
-                            Введите URL для анализа
-                        </h5>
-                        <form action="/analyze" method="POST" class="needs-validation" novalidate>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-globe text-muted"></i>
-                                </span>
-                                <input type="url" class="form-control border-start-0" 
-                                       id="url" name="url" placeholder="https://ваш-сайт.ru" 
-                                       required pattern="https?://.+\..+">
-                                <button class="btn btn-primary px-4" type="submit">
-                                    <i class="fas fa-play-circle me-2"></i>Анализ
-                                </button>
-                            </div>
-                            <div class="form-text mt-2">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Укажите полный адрес сайта с протоколом http:// или https://
-                            </div>
-                        </form>
-                    </div>
-                    <div class="col-lg-4 text-center">
-                        <div class="bg-light rounded p-3 mt-3 mt-lg-0">
-                            <i class="fas fa-bolt text-warning fa-3x mb-2"></i>
-                            <h6 class="mb-1">Быстрый анализ</h6>
-                            <small class="text-muted">Результаты за 30 секунд</small>
+                <div class="hero-image">
+                    <div class="analytics-dashboard">
+                        <div class="dashboard-card">
+                            <div class="metric">GEO Score</div>
+                            <div class="value success">87%</div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Информационные блоки -->
-                <div class="row g-4">
-                    <!-- Что проверяется -->
-                    <div class="col-md-6">
-                        <div class="card h-100 border-0 bg-light">
-                            <div class="card-header bg-white border-0">
-                                <h6 class="mb-0 text-success">
-                                    <i class="fas fa-tasks me-2"></i>Параметры анализа
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex align-items-start mb-3">
-                                    <i class="fas fa-heading text-primary mt-1 me-3"></i>
-                                    <div>
-                                        <strong>Семантика и заголовки</strong>
-                                        <p class="text-muted mb-0 small">Title, Description, H1-H6 структура</p>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-start mb-3">
-                                    <i class="fas fa-code text-info mt-1 me-3"></i>
-                                    <div>
-                                        <strong>Структурированные данные</strong>
-                                        <p class="text-muted mb-0 small">Schema.org, JSON-LD, микроразметка</p>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-start mb-3">
-                                    <i class="fas fa-user-edit text-warning mt-1 me-3"></i>
-                                    <div>
-                                        <strong>Авторство и EEAT</strong>
-                                        <p class="text-muted mb-0 small">Экспертность, авторство, доверие</p>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-start">
-                                    <i class="fas fa-robot text-danger mt-1 me-3"></i>
-                                    <div>
-                                        <strong>Оптимизация для AI</strong>
-                                        <p class="text-muted mb-0 small">Адаптация для Large Language Models</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Преимущества -->
-                    <div class="col-md-6">
-                        <div class="card h-100 border-0 bg-light">
-                            <div class="card-header bg-white border-0">
-                                <h6 class="mb-0 text-info">
-                                    <i class="fas fa-chart-line me-2"></i>Результаты оптимизации
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex align-items-start mb-3">
-                                    <i class="fas fa-search text-success mt-1 me-3"></i>
-                                    <div>
-                                        <strong>Улучшение SEO</strong>
-                                        <p class="text-muted mb-0 small">Рост позиций в поисковых системах</p>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-start mb-3">
-                                    <i class="fas fa-brain text-purple mt-1 me-3"></i>
-                                    <div>
-                                        <strong>Цитируемость в AI</strong>
-                                        <p class="text-muted mb-0 small">Участие в ответах нейросетей</p>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-start mb-3">
-                                    <i class="fas fa-map-marker-alt text-danger mt-1 me-3"></i>
-                                    <div>
-                                        <strong>GEO-трафик</strong>
-                                        <p class="text-muted mb-0 small">Привлечение целевой аудитории</p>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-start">
-                                    <i class="fas fa-share-alt text-primary mt-1 me-3"></i>
-                                    <div>
-                                        <strong>Виртуальное продвижение</strong>
-                                        <p class="text-muted mb-0 small">Увеличение онлайн-присутствия</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Дополнительная информация -->
-                <div class="mt-5 text-center">
-                    <div class="bg-primary bg-opacity-10 rounded p-4">
-                        <h6 class="text-primary mb-3">
-                            <i class="fas fa-lightbulb me-2"></i>Важно знать
-                        </h6>
-                        <p class="text-muted mb-0">
-                            Анализ учитывает последние требования поисковых систем и рекомендации 
-                            для оптимального взаимодействия с искусственным интеллектом
-                        </p>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </header>
+    <main>
+        <section id="features" class="features-section">
+            <div class="container">
+                <h2 class="section-title">Почему CogniGeo?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3>Вердикт от YandexGPT</h3>
+                        <p>Итоговый вывод и персонализированные рекомендации формирует нейросеть — без шаблонных советов.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <h3>6 ключевых GEO метрик</h3>
+                        <p>Только самые важные показатели для генеративного поиска: ясность, сущности, вопросы и локальность.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Мгновенный анализ</h3>
+                        <p>Результат за 10–15 секунд. Все данные проверяются в реальном времени, а не предполагаются.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Готовность к ИИ-поиску</h3>
+                        <p>Оценка соответствия вашего контента требованиям нового поколения поисковых систем.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<!-- Скрипт для валидации формы -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('.needs-validation');
-    
-    form.addEventListener('submit', function(event) {
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        form.classList.add('was-validated');
-    });
-});
-</script>
-{% endblock %}
+        <!-- Метрики -->
+        <section id="metrics" class="metrics-section" style="background: #f8f9fa; padding: 60px 0;">
+            <div class="container">
+                <h2 class="section-title">6 ключевых GEO метрик</h2>
+                <p class="section-subtitle">Только проверенные данные для генеративного поиска</p>
+
+                <div class="metrics-grid" style="display: grid; grid-template-columns: 1fr; gap: 30px; margin-top: 30px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                    <div>
+                        <h3 style="text-align: center; margin-bottom: 25px;"><span class="yandexgpt-badge">YandexGPT Анализ</span></h3>
+                        <div class="metric-list" style="justify-content: center;">
+                            <span class="geo-metric-badge">Ясность и структура текста</span>
+                            <span class="geo-metric-badge">Богатство сущностями</span>
+                            <span class="geo-metric-badge">Вопросно-ответные блоки</span>
+                            <span class="geo-metric-badge">Глубина раскрытия темы</span>
+                            <span class="geo-metric-badge">Локальная релевантность</span>
+                            <span class="geo-metric-badge">Zero-click потенциал</span>
+                        </div>
+                        <p style="text-align: center; margin-top: 20px; color: #666;">
+                            Каждая метрика оценивается по 10-балльной шкале с детальными рекомендациями от YandexGPT
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="how-it-works-section">
+            <div class="container">
+                <h2 class="section-title">Как работает анализ?</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Ввод URL сайта</h3>
+                            <p>Система сканирует ваш сайт и собирает данные по 6 ключевым GEO метрикам.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Анализ YandexGPT</h3>
+                            <p>Нейросеть обрабатывает все метрики и формирует детальную оценку на русском языке.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Получение отчёта</h3>
+                            <p>Вы получаете оценки по всем метрикам, сильные/слабые стороны и <strong>персональный вердикт от ИИ</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Тарифы -->
+        <section id="pricing" class="pricing-section">
+            <div class="container">
+                <h2 class="section-title">Тарифы</h2>
+                <p class="section-subtitle">Все тарифы включают полный GEO анализ с вердиктом от YandexGPT</p>
+
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <h3>Базовый</h3>
+                            <div class="price">
+                                <span class="amount">0₽</span>
+                                <span class="period">навсегда</span>
+                            </div>
+                        </div>
+                        <ul class="features-list">
+                            <li><i class="fas fa-check"></i> 1 анализ в месяц</li>
+                            <li><i class="fas fa-check"></i> 6 GEO метрик</li>
+                            <li><i class="fas fa-check"></i> Вердикт от YandexGPT</li>
+                            <li><i class="fas fa-check"></i> Базовые рекомендации</li>
+                            <li><i class="fas fa-times"></i> История анализов</li>
+                            <li><i class="fas fa-times"></i> Сравнительные отчёты</li>
+                        </ul>
+                        <a href="/analyzer" class="btn-secondary btn-full">Начать бесплатно</a>
+                    </div>
+
+                    <div class="pricing-card featured">
+                        <div class="pricing-header">
+                            <h3>Профессионал</h3>
+                            <div class="price">
+                                <span class="amount">490₽</span>
+                                <span class="period">/месяц</span>
+                            </div>
+                        </div>
+                        <ul class="features-list">
+                            <li><i class="fas fa-check"></i> 10 анализов в месяц</li>
+                            <li><i class="fas fa-check"></i> Все 6 GEO метрик</li>
+                            <li><i class="fas fa-check"></i> Детальный вердикт от YandexGPT</li>
+                            <li><i class="fas fa-check"></i> История анализов</li>
+                            <li><i class="fas fa-check"></i> Сравнительные отчёты</li>
+                            <li><i class="fas fa-check"></i> Экспорт в PDF</li>
+                        </ul>
+                        <a href="/analyzer" class="btn-primary btn-full">Выбрать тариф</a>
+                    </div>
+
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <h3>Бизнес</h3>
+                            <div class="price">
+                                <span class="amount">1490₽</span>
+                                <span class="period">/месяц</span>
+                            </div>
+                        </div>
+                        <ul class="features-list">
+                            <li><i class="fas fa-check"></i> Неограниченное число анализов</li>
+                            <li><i class="fas fa-check"></i> Все возможности Профессионал</li>
+                            <li><i class="fas fa-check"></i> Приоритетная обработка</li>
+                            <li><i class="fas fa-check"></i> Расширенная аналитика</li>
+                            <li><i class="fas fa-check"></i> API доступ</li>
+                            <li><i class="fas fa-check"></i> Техническая поддержка 24/7</li>
+                        </ul>
+                        <a href="#" class="btn-secondary btn-full">Для бизнеса</a>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h4 style="margin-bottom: 10px;">Корпоративное решение</h4>
+                    <p style="margin-bottom: 15px; color: #666;">Нужен индивидуальный тариф для команды или агентства?</p>
+                    <a href="#" class="btn-secondary">Связаться с менеджером</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-content">
+                    <h2>Готовы к новому поколению поиска?</h2>
+                    <p>Получите профессиональный GEO анализ от YandexGPT — бесплатно и без регистрации.</p>
+                    <a href="/analyzer" class="btn-primary btn-large">
+                        <i class="fas fa-robot"></i> Запустить AI-анализ
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="logo">
+                        <i class="fas fa-brain logo-icon"></i>
+                        <span>CogniGeo</span>
+                    </div>
+                    <p>AI-анализ для нового поколения поиска: Generative Engine Optimization (GEO)</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Сервис</h4>
+                    <ul>
+                        <li><a href="/analyzer">Анализ сайта</a></li>
+                        <li><a href="#metrics">Метрики</a></li>
+                        <li><a href="#pricing">Тарифы</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Технологии</h4>
+                    <ul>
+                        <li><a href="#">YandexGPT</a></li>
+                        <li><a href="#">GEO метрики</a></li>
+                        <li><a href="#">AI-анализ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 CogniGeo. Все оценки и вердикты формируются YandexGPT.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
